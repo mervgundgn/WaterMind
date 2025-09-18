@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "934540926934",
+    "project_id": "watermind-d4485",
+    "storage_bucket": "watermind-d4485.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934540926934:android:f241cdbaa8be9e16858e77",
+        "android_client_info": {
+          "package_name": "com.example.watermind"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXAUqWpsNnicjHeQSZGjAiNUJnx_DX2yU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
