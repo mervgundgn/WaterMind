@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+//import 'package:watermind/home_page.dart';
 // firebase_options.dart dosyası, FlutterFire configure ile otomatik oluşur
 import 'firebase_options.dart';
+import 'login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter motorunu başlat
@@ -17,11 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'WaterMind',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.pink,
       ),
-      home: const Text("WaterMind App"), // Şimdilik basit bir widget
+      home: const LoginPage(), // başlangıç ekranı artık LoginPage
     );
   }
 }
