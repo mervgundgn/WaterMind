@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:watermind/add_consumption_page.dart';
+import 'package:watermind/splash_page.dart';
 // firebase_options.dart dosyası, FlutterFire configure ile otomatik oluşur
 import 'firebase_options.dart';
 
@@ -17,11 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: SafeArea(child: AddConsumptionPage()),
       title: 'WaterMind',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const Text("WaterMind App"), // Şimdilik basit bir widget
     );
   }
 }
