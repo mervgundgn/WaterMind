@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'app_constants.dart';
 import 'home_page.dart';
 
-
 class SetGoalsPage extends StatefulWidget {
   const SetGoalsPage({Key? key}) : super(key: key);
 
@@ -13,7 +12,6 @@ class SetGoalsPage extends StatefulWidget {
 class _SetGoalsPageState extends State<SetGoalsPage> {
   late Map<String, double> goalMap;
 
-  // Kategoriye karşılık gelen ikon pathleri
   final Map<String, String> categoryIcons = {
     "İçme Suyu": "assets/icons/cat_drinking_water.png",
     "Duş": "assets/icons/cat_shower.png",
@@ -25,7 +23,6 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
   @override
   void initState() {
     super.initState();
-    // Varsayılan değerler AppDefaultValues üzerinden
     goalMap = {
       "İçme Suyu": AppDefaultValues.defaultDrinkingWaterGoal.toDouble(),
       "Duş": AppDefaultValues.defaultShowerConsumptionPerMinute.toDouble(),
@@ -35,7 +32,6 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
     };
   }
 
-  // Pratik değer metni hesaplama fonksiyonu
   String getCategoryDisplayText(String category, double value) {
     switch (category) {
       case "İçme Suyu":
@@ -60,22 +56,13 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
   }
 
   void saveGoals() {
-    print(goalMap); // test amaçlı console'a yazdır
-
-    // TODO: Firebase Firestore'a kaydetme işlemi
-    // FirebaseFirestore.instance.collection(FirestoreConstants.usersCollection)
-    //     .doc(userId)
-    //     .set({FirestoreConstants.goalsField: goalMap}, SetOptions(merge: true));
-
-    // SnackBar göster
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Hedefler kaydedildi!"),
-        duration: Duration(seconds: 3), // SnackBar 3 saniye görünür
+        duration: Duration(seconds: 3),
       ),
     );
 
-    // 3 saniye bekleyip anasayfaya yönlendir
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
@@ -83,7 +70,6 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
       );
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -97,72 +83,69 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.medium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Hedeflerini Belirle",
-              style: AppTextStyles.headline1.copyWith(color: AppColors.darkGrey),
-            ),
-            const SizedBox(height: AppSpacing.large),
-            Expanded(
-              child: ListView(
-                children: goalMap.keys.map((category) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.medium),
+          child: ListView(
+            children: goalMap.keys.map((category) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Image.asset(
-                              categoryIcons[category]!,
-                              width: 40,
-                              height: 40,
-                            ),
-                            const SizedBox(width: AppSpacing.medium),
-                            Text(
-                              category,
-                              style: AppTextStyles.subTitle1.copyWith(color: AppColors.darkGrey),
-                            ),
-                          ],
+                        Image.asset(
+                          categoryIcons[category]!,
+                          width: 40,
+                          height: 40,
                         ),
-                        Slider(
-                          value: goalMap[category]!,
-                          min: 0,
-                          max: category == "İçme Suyu" ? 5000 : 500,
-                          divisions: category == "İçme Suyu" ? 100 : 50,
-                          activeColor: AppColors.primaryGreen,
-                          inactiveColor: AppColors.lightGrey,
-                          onChanged: (value) {
-                            setState(() {
-                              goalMap[category] = value;
-                            });
-                          },
-                        ),
+                        const SizedBox(width: AppSpacing.medium),
                         Text(
-                          getCategoryDisplayText(category, goalMap[category]!),
-                          style: AppTextStyles.bodyText1.copyWith(color: AppColors.primaryBlue),
+                          category,
+                          style: AppTextStyles.subTitle1.copyWith(color: AppColors.darkGrey),
                         ),
                       ],
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-            Center(
-              child: ElevatedButton(
-                onPressed: saveGoals,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  textStyle: AppTextStyles.buttonText,
+                    Slider(
+                      value: goalMap[category]!,
+                      min: 0,
+                      max: category == "İçme Suyu" ? 5000 : 500,
+                      divisions: category == "İçme Suyu" ? 100 : 50,
+                      activeColor: AppColors.primaryGreen,
+                      inactiveColor: AppColors.lightGrey,
+                      onChanged: (value) {
+                        setState(() {
+                          goalMap[category] = value;
+                        });
+                      },
+                    ),
+                    Text(
+                      getCategoryDisplayText(category, goalMap[category]!),
+                      style: AppTextStyles.bodyText1.copyWith(color: AppColors.primaryBlue),
+                    ),
+                  ],
                 ),
-                child: const Text("Hedefleri Kaydet"),
-              ),
-            ),
-          ],
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.medium,
+          AppSpacing.medium,
+          AppSpacing.medium,
+          AppSpacing.medium + MediaQuery.of(context).padding.bottom,
+        ),
+        child: ElevatedButton(
+          onPressed: saveGoals,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryBlue,
+            textStyle: AppTextStyles.buttonText,
+            minimumSize: const Size.fromHeight(50),
+          ),
+          child: const Text("Hedefleri Kaydet"),
         ),
       ),
     );
