@@ -88,8 +88,41 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         "timestamp": Timestamp.now(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tüketim kaydedildi!")),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.lightBlue[50],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: const [
+                Text("🎉 Başarılı!"),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  "Tüketimin başarıyla kaydedildi!",
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 12),
+                Text("💧 Her damla önemlidir!", textAlign: TextAlign.center),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text(
+                  "Tamam 👍",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          );
+        },
       );
 
       // Reset
@@ -264,11 +297,11 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                onPressed: _saveConsumption,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryBlue,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                onPressed: _saveConsumption,
                 child: Text("Tüketimi Kaydet", style: AppTextStyles.buttonText),
               ),
             ),

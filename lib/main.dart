@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SafeArea(child: AddConsumptionPage()),
+      home: SafeArea(child: SplashPage()),
       title: 'WaterMind',
       theme: ThemeData(
         primarySwatch: Colors.blue,
