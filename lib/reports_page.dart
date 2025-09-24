@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'app_constants.dart';
-import 'add_consumption_page.dart';
-import 'home_page.dart';
-import 'settings_page.dart';
 
 class ReportsPage extends StatefulWidget {
   const ReportsPage({Key? key}) : super(key: key);
@@ -14,15 +10,13 @@ class ReportsPage extends StatefulWidget {
 }
 
 class _ReportsPageState extends State<ReportsPage> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   Map<String, double> dailyConsumption = {};
   Map<String, double> weeklyConsumption = {};
   Map<String, double> userGoals = {};
 
-  bool isLoading = true;
   bool showWeekly = false;
   int _currentIndex = 1;
+  bool isLoading = true;
 
   final List<String> categories = [
     "İçme Suyu",
@@ -43,63 +37,34 @@ class _ReportsPageState extends State<ReportsPage> {
   @override
   void initState() {
     super.initState();
-    fetchGoalsAndConsumption();
+    loadDummyData();
   }
 
-  Future<void> fetchGoalsAndConsumption() async {
-    String userId = "currentUserId";
+  void loadDummyData() {
+    // Dummy veriler
+    userGoals = {
+      "İçme Suyu": 2000,
+      "Duş": 60,
+      "Çamaşır": 60,
+      "Bulaşık": 30,
+      "Bahçe Sulama": 20,
+    };
 
-    // Kullanıcı hedefleri
-    final userDoc = await _firestore
-        .collection(FirestoreConstants.usersCollection)
-        .doc(userId)
-        .get();
+    dailyConsumption = {
+      "İçme Suyu": 1200,
+      "Duş": 30,
+      "Çamaşır": 30,
+      "Bulaşık": 20,
+      "Bahçe Sulama": 5,
+    };
 
-    if (userDoc.exists &&
-        userDoc.data()![FirestoreConstants.goalsField] != null) {
-      final goals = Map<String, dynamic>.from(
-          userDoc.data()![FirestoreConstants.goalsField]);
-      userGoals = goals.map((key, value) =>
-          MapEntry(key, (value as num).toDouble()));
-    } else {
-      userGoals = {
-        "İçme Suyu": AppDefaultValues.defaultDrinkingWaterGoal.toDouble(),
-        "Duş": AppDefaultValues.defaultShowerConsumptionPerMinute.toDouble(),
-        "Çamaşır": AppDefaultValues.defaultLaundryConsumption.toDouble(),
-        "Bulaşık": AppDefaultValues.defaultDishesConsumption.toDouble(),
-        "Bahçe Sulama": AppDefaultValues.defaultGardenWateringConsumption.toDouble(),
-      };
-    }
-
-    // Tüketimler
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    final weekStart = todayStart.subtract(Duration(days: now.weekday - 1));
-
-    dailyConsumption = {};
-    weeklyConsumption = {};
-
-    final snapshot = await _firestore
-        .collection(FirestoreConstants.consumptionHistoryCollection)
-        .where(FirestoreConstants.userIdField, isEqualTo: userId)
-        .get();
-
-    for (var doc in snapshot.docs) {
-      final data = doc.data();
-      String category = data[FirestoreConstants.categoryField];
-      double amount = (data[FirestoreConstants.amountField] as num).toDouble();
-      DateTime timestamp =
-      (data[FirestoreConstants.timestampField] as Timestamp).toDate();
-
-      if (timestamp.isAfter(todayStart)) {
-        dailyConsumption[category] =
-            (dailyConsumption[category] ?? 0) + amount;
-      }
-      if (timestamp.isAfter(weekStart)) {
-        weeklyConsumption[category] =
-            (weeklyConsumption[category] ?? 0) + amount;
-      }
-    }
+    weeklyConsumption = {
+      "İçme Suyu": 6000,
+      "Duş": 200,
+      "Çamaşır": 180,
+      "Bulaşık": 90,
+      "Bahçe Sulama": 50,
+    };
 
     setState(() {
       isLoading = false;
@@ -137,7 +102,8 @@ class _ReportsPageState extends State<ReportsPage> {
       if (consumed > maxY) maxY = consumed;
       if (goal > maxY) maxY = goal;
     }
-    maxY *= 1.2;
+    maxY = maxY * 1.2;
+    if (maxY == 0) maxY = 10;
 
     return BarChart(
       BarChartData(
@@ -152,7 +118,8 @@ class _ReportsPageState extends State<ReportsPage> {
                 showTitles: true,
                 reservedSize: 50,
                 getTitlesWidget: (value, meta) {
-                  return Text("${value.toInt()} L", style: AppTextStyles.caption);
+                  return Text("${value.toInt()} L",
+                      style: AppTextStyles.caption);
                 }),
           ),
           bottomTitles: AxisTitles(
@@ -197,7 +164,9 @@ class _ReportsPageState extends State<ReportsPage> {
                 }),
             title: Text(category, style: AppTextStyles.subTitle1),
             subtitle: Text(
-              "${consumed.toInt()} L / Hedef: ${goal.toInt()} L",
+              goal > 0
+                  ? "${consumed.toInt()} L / Hedef: ${goal.toInt()} L"
+                  : "${consumed.toInt()} L (hedef yok)",
               style: AppTextStyles.bodyText2,
             ),
           ),
@@ -267,34 +236,13 @@ class _ReportsPageState extends State<ReportsPage> {
         backgroundColor: AppColors.primaryGreen,
         child: const Icon(Icons.add),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddConsumptionPage()),
-          ).then((_) {
-            fetchGoalsAndConsumption();
-          });
+          // Consumption ekleme sayfasına gidecek
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) {
           setState(() => _currentIndex = i);
-          switch (i) {
-            case 0:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
-              );
-              break;
-            case 1:
-              break;
-            case 2:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-              break;
-          }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),

@@ -24,31 +24,33 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
   void initState() {
     super.initState();
     goalMap = {
-      "İçme Suyu": AppDefaultValues.defaultDrinkingWaterGoal.toDouble(),
-      "Duş": AppDefaultValues.defaultShowerConsumptionPerMinute.toDouble(),
-      "Çamaşır": AppDefaultValues.defaultLaundryConsumption.toDouble(),
-      "Bulaşık": AppDefaultValues.defaultDishesConsumption.toDouble(),
-      "Bahçe Sulama": AppDefaultValues.defaultGardenWateringConsumption.toDouble(),
+      "İçme Suyu": 0,
+      "Duş": 0,
+      "Çamaşır": 0,
+      "Bulaşık": 0,
+      "Bahçe Sulama": 0,
     };
   }
 
   String getCategoryDisplayText(String category, double value) {
     switch (category) {
       case "İçme Suyu":
+        if (value == 0) return "0 ml";
         return "${value.toInt()} ml (yaklaşık ${(value / 250).round()} bardak)";
       case "Duş":
+        if (value == 0) return "0 litre";
         return "${value.toInt()} litre (yaklaşık ${(value / 12).round()} dakika)";
       case "Çamaşır":
-        int machines = (value / 60).round();
-        machines = machines == 0 ? 1 : machines;
-        return "${value.toInt()} litre (yaklaşık $machines makine)";
+        if (value == 0) return "0 makine (0 litre)";
+        int litres = (value * AppDefaultValues.defaultLaundryConsumption).toInt();
+        return "${value.toInt()} makine (yaklaşık $litres litre)";
       case "Bulaşık":
-        int machines = (value / 30).round();
-        machines = machines == 0 ? 1 : machines;
-        return "${value.toInt()} litre (yaklaşık $machines makine)";
+        if (value == 0) return "0 makine (0 litre)";
+        int litres = (value * AppDefaultValues.defaultDishesConsumption).toInt();
+        return "${value.toInt()} makine (yaklaşık $litres litre)";
       case "Bahçe Sulama":
+        if (value == 0) return "0 litre";
         int minutes = (value / 10).round();
-        minutes = minutes == 0 ? 1 : minutes;
         return "${value.toInt()} litre (yaklaşık $minutes dakika)";
       default:
         return "${value.toInt()} litre";
@@ -110,13 +112,30 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
                     Slider(
                       value: goalMap[category]!,
                       min: 0,
-                      max: category == "İçme Suyu" ? 5000 : 500,
-                      divisions: category == "İçme Suyu" ? 100 : 50,
+                      max: category == "Çamaşır"
+                          ? 5 // 0–5 makine
+                          : category == "Bulaşık"
+                          ? 5
+                          : category == "İçme Suyu"
+                          ? 5000
+                          : 500,
+                      divisions: category == "Çamaşır" || category == "Bulaşık"
+                          ? 5
+                          : category == "İçme Suyu"
+                          ? 100
+                          : 50,
+                      label: category == "Çamaşır" || category == "Bulaşık"
+                          ? "${goalMap[category]!.round()} makine"
+                          : "${goalMap[category]!.toInt()}",
                       activeColor: AppColors.primaryGreen,
                       inactiveColor: AppColors.lightGrey,
                       onChanged: (value) {
                         setState(() {
-                          goalMap[category] = value;
+                          if (category == "Çamaşır" || category == "Bulaşık") {
+                            goalMap[category] = value.roundToDouble();
+                          } else {
+                            goalMap[category] = value;
+                          }
                         });
                       },
                     ),
