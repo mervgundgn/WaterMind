@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:watermind/app_constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,134 +12,223 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  double waterLevel = 0.6; // %60 dolu
-  late AnimationController _controller;
+  late AnimationController _fishController;
+  int _currentIndex = 0;
+  User? user;
 
   @override
   void initState() {
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2))
-          ..repeat(reverse: true);
+    user = FirebaseAuth.instance.currentUser;
+
+    // Animasyonu veri geldikten sonra başlatacağız
+    _fishController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _fishController.dispose();
     super.dispose();
   }
 
-  int _currentIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text("Kullanıcı giriş yapmamış")),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      body: Column(
-        children: [
-          const SizedBox(height: 48),
-
-          // Günlük tüketim bilgisi
-          Text(
-            "Günlük Tüketim",
-            style: GoogleFonts.lato(
-              fontSize: 18,
-              fontWeight: FontWeight.w400,
-              color: Colors.grey.shade800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "120 litre / 150 litre",
-            style: GoogleFonts.lato(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade900,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Göl ve balık alanı
-          Expanded(
-            flex: 6,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Göl
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF2196F3), Color(0xFF00BCD4)],
-                    ),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40),
-                    ),
-                  ),
-                ),
-
-                // Balık (basit animasyon placeholder)
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Positioned(
-                      bottom: 100 + 20 * _controller.value,
-                      child: Icon(
-                        Icons.set_meal, // 🐟 yerine geçici icon
-                        size: 80,
-                        color: Colors.orange.shade700,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Balığın mesaj kartı
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107), // pozitif mesaj rengi
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  "Harika! Bugün duşunu kısa tuttun 👏",
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade900,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        title: const Text("Su Akışı"),
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: AppColors.primaryBlue),
+            onPressed: () {
+              // Ayarlar sayfasına yönlendirme
+            },
           ),
         ],
       ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("users")
+            .doc(user!.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          final docData = snapshot.data?.data() as Map<String, dynamic>?;
 
-      // BottomNavigationBar
+          // Kullanıcı verisi yoksa default değerler
+          final dailyConsumption = (docData?["dailyConsumption"] ?? 0) as num;
+          final dailyTarget = (docData?["dailyTarget"] ?? 150) as num;
+
+          // Animasyonu başlat
+          if (!_fishController.isAnimating) {
+            _fishController.repeat(reverse: true);
+          }
+
+          double waterLevel =
+              (dailyConsumption / dailyTarget).clamp(0.0, 1.0).toDouble();
+
+          // Su seviyesi görseli (vibrant gradient simülasyonu için renkleri seçtik)
+          String waterImage = "assets/images/water_level_low.gif";
+          if (waterLevel > 0.66) {
+            waterImage = "assets/images/water_level_high.gif";
+          } else if (waterLevel > 0.33) {
+            waterImage = "assets/images/water_level_medium.gif";
+          }
+
+          // Balık ruh hali ve mesaj
+          String fishImage = "assets/images/home_fish_normal.png";
+          String fishMessage = "Hadi su tüketimini artır! 🚰";
+          Color bubbleColor = const Color(0xFFFF9800); // Uyarı turuncusu
+
+          if (waterLevel > 0.8) {
+            fishImage = "assets/images/home_fish_happy.png";
+            fishMessage = "Harika! Bugün duşunu kısa tuttun 👏";
+            bubbleColor = const Color(0xFFFFC107); // Pozitif sarı
+          } else if (waterLevel < 0.3) {
+            fishImage = "assets/images/home_fish_sad_thinking.png";
+            fishMessage = "Bugün biraz daha su tasarrufuna dikkat et 💧";
+            bubbleColor = const Color(0xFFFF9800);
+          }
+
+          return Column(
+            children: [
+              const SizedBox(height: 16),
+
+              // Günlük tüketim bilgisi
+              Text(
+                "Günlük Tüketim",
+                style: AppTextStyles.headline2
+                    .copyWith(color: AppColors.primaryBlue),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "$dailyConsumption litre / $dailyTarget litre",
+                style:
+                    AppTextStyles.bodyText1.copyWith(color: AppColors.darkGrey),
+              ),
+              const SizedBox(height: AppSpacing.large),
+
+              // Göl + su seviyesi + balık (screen height ~60-70%)
+              Expanded(
+                flex: 6,
+                child: Stack(
+                  alignment: Alignment.center,
+                  fit: StackFit.expand,
+                  children: [
+                    // Göl arka planı
+                    Image.asset(
+                      "assets/images/home_lake_background.png",
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    // Su seviyesi
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Image.asset(
+                        waterImage,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    // Balık animasyonu
+                    AnimatedBuilder(
+                      animation: _fishController,
+                      builder: (context, child) {
+                        return Positioned(
+                          bottom: 100 + 20 * _fishController.value,
+                          child: Image.asset(
+                            fishImage,
+                            width: 120,
+                            height: 120,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              // Balık mesajı (speech bubble style)
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.medium, vertical: 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.medium),
+                    decoration: BoxDecoration(
+                      color: bubbleColor,
+                      borderRadius: BorderRadius.circular(20),
+                      image: const DecorationImage(
+                        image: AssetImage("assets/images/ui_speech_bubble.png"),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Text(
+                      fishMessage,
+                      style: AppTextStyles.subTitle1
+                          .copyWith(color: AppColors.darkGrey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: "İstatistik"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Ayarlar"),
+            icon: Image.asset(
+              "assets/icons/nav_home.png",
+              width: 24,
+              height: 24,
+            ),
+            label: "Ana Sayfa",
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset(
+              "assets/icons/ui_checkmark.png",
+              width: 29,
+              height: 29,
+            ),
+            label: "Tüketim Ekle",
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset(
+              "assets/icons/nav_reports.png",
+              width: 24,
+              height: 24,
+            ),
+            label: "İstatistik",
+          ),
+          BottomNavigationBarItem(
+            icon: Image.asset(
+              "assets/icons/nav_settings.png",
+              width: 24,
+              height: 24,
+            ),
+            label: "Ayarlar",
+          ),
         ],
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: AppColors.primaryBlue,
+        unselectedItemColor: AppColors.mediumGrey,
         backgroundColor: Colors.white,
+        type: BottomNavigationBarType.fixed, // ikonlar ve label doğru görünür
       ),
     );
   }

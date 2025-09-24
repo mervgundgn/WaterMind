@@ -152,20 +152,43 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: AppSpacing.medium),
 
-                    // Forgot + Create Account buttons
+// Forgot + Create Account buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (emailController.text.isNotEmpty) {
-                              _auth.sendPasswordResetEmail(
-                                email: emailController.text.trim(),
-                              );
+                              try {
+                                await _auth.sendPasswordResetEmail(
+                                  email: emailController.text.trim(),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Şifre sıfırlama maili gönderildi 📩"),
+                                  ),
+                                );
+                              } on FirebaseAuthException catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Hata: ${e.message}"),
+                                  ),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text("Beklenmeyen bir hata oluştu: $e"),
+                                  ),
+                                );
+                              }
+                            } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text(
-                                        "Şifre sıfırlama maili gönderildi 📩")),
+                                  content:
+                                      Text("Lütfen email adresinizi girin ✉️"),
+                                ),
                               );
                             }
                           },

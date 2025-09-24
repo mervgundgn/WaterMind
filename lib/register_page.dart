@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:watermind/app_constants.dart';
 import 'package:watermind/login_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,29 +20,45 @@ class _RegisterPageState extends State<RegisterPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> register() async {
-    if (passwordController.text.trim() !=
-        confirmPasswordController.text.trim()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Şifreler eşleşmiyor ❌")),
-      );
-      return;
-    }
-
     try {
-      await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Hesap başarıyla oluşturuldu 🎉")),
-      );
+      final user = userCredential.user;
+      if (user != null) {
+        // ✅ Firestore’a kullanıcı dokümanı ekle
+        await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+          "email": user.email,
+          "dailyConsumption": 0,
+          "dailyTarget": 150,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+      }
 
-      // ✅ Kayıt başarılı → LoginPage'e yönlendir
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-        (route) => false, // geri tuşuna basınca register'a dönmesin
+      if (!mounted) return;
+
+      // ✅ Başarılı AlertDialog
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Başarılı 🎉"),
+          content: const Text("Hesap başarıyla oluşturuldu!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // AlertDialog kapat
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text("Tamam"),
+            ),
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,25 +70,34 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FF5F),
+      backgroundColor: AppColors.backgroundDark,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpacing.large),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // ✅ App Logo
+              Image.asset(
+                "assets/icons/app_logo_main.png",
+                height: 120,
+              ),
+              SizedBox(height: AppSpacing.large),
+
+              // ✅ Başlık
               Text(
                 "Hesap Oluştur",
-                style: GoogleFonts.lato(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                style: AppTextStyles.headline1.copyWith(
+                  color: AppColors.darkGrey,
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.large),
+
+              // ✅ Form container
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(AppSpacing.large),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.backgroundLight,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -84,80 +109,120 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 child: Column(
                   children: [
+                    // Email input
                     TextField(
                       controller: emailController,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Email",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Password input
                     TextField(
                       controller: passwordController,
                       obscureText: true,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Şifre",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Confirm Password input
                     TextField(
                       controller: confirmPasswordController,
                       obscureText: true,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Şifre (Tekrar)",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.large),
+
+                    // Register button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                          backgroundColor: AppColors.primaryBlue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          textStyle: AppTextStyles.buttonText,
                         ),
                         onPressed: register,
-                        child: Text(
-                          "Kayıt Ol",
-                          style: GoogleFonts.lato(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: const Text("Kayıt Ol"),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context); // LoginPage'e geri dön
-                      },
-                      child: Text(
-                        "Zaten hesabım var",
-                        style: GoogleFonts.lato(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue,
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Back to Login button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginPage()),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryBlue,
+                            textStyle: AppTextStyles.bodyText1,
+                          ),
+                          child: const Text("Zaten hesabım var"),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),

@@ -28,42 +28,46 @@ class AppColors {
 }
 
 class AppTextStyles {
-  // Font Ailesi: Lato (Google Fonts paketi ile)
-
-  static TextStyle headline1 = GoogleFonts.lato(
+  static TextStyle headline1 = GoogleFonts.poppins(
     fontWeight: FontWeight.bold,
     fontSize: 24.0,
     color: AppColors.darkGrey,
   );
-  static TextStyle headline2 = GoogleFonts.lato(
-    fontWeight: FontWeight.w600, // SemiBold karşılığı
+
+  static TextStyle headline2 = GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
     fontSize: 20.0,
     color: AppColors.darkGrey,
   );
-  static TextStyle subTitle1 = GoogleFonts.lato(
-    fontWeight: FontWeight.w600, // SemiBold karşılığı
+
+  static TextStyle subTitle1 = GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
     fontSize: 16.0,
     color: AppColors.darkGrey,
   );
-  static TextStyle bodyText1 = GoogleFonts.lato(
-    fontWeight: FontWeight.normal, // Regular karşılığı
+
+  static TextStyle bodyText1 = GoogleFonts.poppins(
+    fontWeight: FontWeight.normal,
     fontSize: 14.0,
     color: AppColors.darkGrey,
   );
-  static TextStyle bodyText2 = GoogleFonts.lato(
-    fontWeight: FontWeight.normal, // Regular karşılığı
+
+  static TextStyle bodyText2 = GoogleFonts.poppins(
+    fontWeight: FontWeight.normal,
     fontSize: 12.0,
     color: AppColors.mediumGrey,
   );
-  static TextStyle caption = GoogleFonts.lato(
-    fontWeight: FontWeight.w300, // Light karşılığı
+
+  static TextStyle caption = GoogleFonts.poppins(
+    fontWeight: FontWeight.w300,
     fontSize: 10.0,
     color: AppColors.mediumGrey,
   );
-  static TextStyle buttonText = GoogleFonts.lato(
-    fontWeight: FontWeight.w600, // SemiBold karşılığı
+
+  static TextStyle buttonText = GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
     fontSize: 14.0,
-    color: AppColors.backgroundLight, // Düğme metinleri varsayılan olarak beyaz
+    color: AppColors.backgroundLight,
   );
 }
 

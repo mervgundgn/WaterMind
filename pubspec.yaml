@@ -38,13 +38,13 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Firebase Core - Firebase hizmetlerini kullanmak için temel bağımlılık
-  firebase_core: ^2.24.2 # pub.dev'den kontrol edilen son sürüm
+  firebase_core: ^4.1.1 # pub.dev'den kontrol edilen son sürüm
 
   # Cloud Firestore - Veritabanı işlemleri için
-  cloud_firestore: ^4.13.6 # pub.dev'den kontrol edilen son sürüm
+  cloud_firestore: ^6.0.2 # pub.dev'den kontrol edilen son sürüm
 
   # Firebase Authentication - Kullanıcı girişi/kayıt işlemleri için
-  firebase_auth: ^4.15.2 # pub.dev'den kontrol edilen son sürüm
+  firebase_auth: ^6.1.0 # pub.dev'den kontrol edilen son sürüm
 
   # Google Fonts - Lato fontunu kullanmak için
   google_fonts: ^6.1.0 # pub.dev'den kontrol edilen son sürüm
