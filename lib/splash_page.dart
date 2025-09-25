@@ -19,7 +19,7 @@ class _SplashPageState extends State<SplashPage> {
     await Future.delayed(const Duration(seconds: 3));
 
     final user = FirestoreConstants.usersCollection;
-    if (user != null && user.isNotEmpty) {
+    if (user.isNotEmpty) {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } else {

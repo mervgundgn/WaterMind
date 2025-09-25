@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// 🎨 Renkler
 class AppColors {
@@ -21,38 +22,46 @@ class AppColors {
 
 /// ✍️ Metin Stilleri
 class AppTextStyles {
-  static const TextStyle headline1 = TextStyle(
-    fontSize: 28,
+  static TextStyle headline1 = GoogleFonts.poppins(
     fontWeight: FontWeight.bold,
+    fontSize: 24.0,
+    color: AppColors.darkGrey,
   );
 
-  static const TextStyle headline2 = TextStyle(
-    fontSize: 22,
+  static TextStyle headline2 = GoogleFonts.poppins(
     fontWeight: FontWeight.w600,
+    fontSize: 20.0,
+    color: AppColors.darkGrey,
   );
 
-  static const TextStyle subTitle1 = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
+  static TextStyle subTitle1 = GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
+    fontSize: 16.0,
+    color: AppColors.darkGrey,
   );
 
-  static const TextStyle bodyText1 = TextStyle(
-    fontSize: 16,
+  static TextStyle bodyText1 = GoogleFonts.poppins(
+    fontWeight: FontWeight.normal,
+    fontSize: 14.0,
+    color: AppColors.darkGrey,
   );
 
-  static const TextStyle bodyText2 = TextStyle(
-    fontSize: 14,
+  static TextStyle bodyText2 = GoogleFonts.poppins(
+    fontWeight: FontWeight.normal,
+    fontSize: 12.0,
+    color: AppColors.mediumGrey,
   );
 
-  static const TextStyle caption = TextStyle(
-    fontSize: 12,
-    color: Colors.grey,
+  static TextStyle caption = GoogleFonts.poppins(
+    fontWeight: FontWeight.w300,
+    fontSize: 10.0,
+    color: AppColors.mediumGrey,
   );
 
-  static const TextStyle buttonText = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
-    color: Colors.white,
+  static TextStyle buttonText = GoogleFonts.poppins(
+    fontWeight: FontWeight.w600,
+    fontSize: 14.0,
+    color: AppColors.backgroundLight,
   );
 }
 
@@ -74,7 +83,7 @@ class AppDefaultValues {
 
   static double get defaultLaundryConsumptionPerCycle => 0.83;
 
-  static double get defaultDishesConsumptionPerMinute => 0.2;
+  static double get defaultDishConsumptionPerMinute => 0.2;
 
   static double get defaultGardenConsumptionPerMinute => 16;
 

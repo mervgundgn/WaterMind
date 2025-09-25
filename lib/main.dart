@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:watermind/add_consumption_page.dart';
-import 'package:watermind/splash_page.dart';
 // firebase_options.dart dosyası, FlutterFire configure ile otomatik oluşur
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Flutter motorunu başlat
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -20,11 +19,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SafeArea(child: SplashPage()),
       title: 'WaterMind',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      home: const AddConsumptionPage(),
     );
   }
 }
