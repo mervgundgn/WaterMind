@@ -36,15 +36,15 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
 
   double _getConsumptionRatePerMinute(String category) {
     switch (category) {
-      case "shower":
+      case "Duş":
         return AppDefaultValues.defaultShowerConsumptionPerMinute;
-      case "laundry":
-        return AppDefaultValues.defaultLaundryConsumptionPerCycle;
-      case "dishes":
+      case "Çamaşır_Yıkama":
+        return AppDefaultValues.defaultLaundryConsumptionPerMinute;
+      case "Bulaşık_Yıkama":
         return AppDefaultValues.defaultDishConsumptionPerMinute;
-      case "garden":
+      case "Bahçe_Sulama":
         return AppDefaultValues.defaultGardenConsumptionPerMinute;
-      case "drinking_water":
+      case "İçme_Suyu":
       default:
         return AppDefaultValues.defaultDrinkingWaterConsumptionPerGlass;
     }
@@ -75,7 +75,6 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         _amountController.text = calculatedLiters.toStringAsFixed(2);
       });
     });
-
     setState(() {
       isTimerRunning = true;
       showSaveHighlight = false;
@@ -252,7 +251,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                   ),
                   items: [
                     DropdownMenuItem(
-                        value: "drinking_water",
+                        value: "İçme_Suyu",
                         child: Row(
                           children: [
                             Image.asset(
@@ -265,7 +264,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                           ],
                         )),
                     DropdownMenuItem(
-                        value: "shower",
+                        value: "Duş",
                         child: Row(
                           children: [
                             Image.asset(
@@ -278,7 +277,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                           ],
                         )),
                     DropdownMenuItem(
-                        value: "laundry",
+                        value: "Çamaşır_Yıkama",
                         child: Row(
                           children: [
                             Image.asset(
@@ -291,7 +290,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                           ],
                         )),
                     DropdownMenuItem(
-                        value: "dishes",
+                        value: "Bulaşık_Yıkama",
                         child: Row(
                           children: [
                             Image.asset(
@@ -304,7 +303,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                           ],
                         )),
                     DropdownMenuItem(
-                        value: "garden",
+                        value: "Bahçe_Sulama",
                         child: Row(
                           children: [
                             Image.asset(

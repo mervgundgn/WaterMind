@@ -78,18 +78,13 @@ class AppDefaultValues {
   /// Dakikada duş başına varsayılan su tüketimi (litre)
   static const double defaultShowerConsumptionPerMinute = 10.0;
 
-  /// Günlük varsayılan içme suyu hedefi (litre)
-  static const double defaultDrinkingWaterGoal = 2.0;
+  static double get defaultLaundryConsumptionPerMinute => 0.83;
 
-  static double get defaultLaundryConsumptionPerCycle => 0.83;
+  static double get defaultDishConsumptionPerMinute => 0.20;
 
-  static double get defaultDishConsumptionPerMinute => 0.2;
-
-  static double get defaultGardenConsumptionPerMinute => 16;
+  static double get defaultGardenConsumptionPerMinute => 16.0;
 
   static double get defaultDrinkingWaterConsumptionPerGlass => 0.2;
-
-  /// Diğer varsayılan değerleri buraya ekleyebilirsin
 }
 
 /// 🔥 Firestore Sabitleri
