@@ -15,7 +15,7 @@ class _ReportsPageState extends State<ReportsPage> {
   Map<String, double> userGoals = {};
 
   bool showWeekly = false;
-  int _currentIndex = 1;
+  int _currentIndex = 2;
   bool isLoading = true;
 
   final List<String> categories = [
@@ -41,7 +41,6 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   void loadDummyData() {
-    // Dummy veriler
     userGoals = {
       "İçme Suyu": 2000,
       "Duş": 60,
@@ -76,9 +75,6 @@ class _ReportsPageState extends State<ReportsPage> {
       int index = entry.key;
       String category = entry.value;
       double value = data[category] ?? 0;
-      double goal = userGoals[category] ?? 0;
-
-      double maxY = (value > goal ? value : goal) * 1.2;
 
       return BarChartGroupData(
         x: index,
@@ -115,12 +111,13 @@ class _ReportsPageState extends State<ReportsPage> {
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 50,
-                getTitlesWidget: (value, meta) {
-                  return Text("${value.toInt()} L",
-                      style: AppTextStyles.caption);
-                }),
+              showTitles: true,
+              reservedSize: 50,
+              getTitlesWidget: (value, meta) {
+                return Text("${value.toInt()} L",
+                    style: AppTextStyles.caption);
+              },
+            ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -130,9 +127,11 @@ class _ReportsPageState extends State<ReportsPage> {
                 if (i < categories.length) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(categories[i],
-                        style: AppTextStyles.bodyText2,
-                        textAlign: TextAlign.center),
+                    child: Text(
+                      categories[i],
+                      style: AppTextStyles.bodyText2,
+                      textAlign: TextAlign.center,
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -155,13 +154,19 @@ class _ReportsPageState extends State<ReportsPage> {
         return Card(
           color: AppColors.backgroundLight,
           elevation: 2.0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.symmetric(vertical: AppSpacing.small),
           child: ListTile(
-            leading: Image.asset(categoryIcons[category] ?? "",
-                width: 32, height: 32, errorBuilder: (_, __, ___) {
-                  return const Icon(Icons.water_drop);
-                }),
+            leading: Image.asset(
+              categoryIcons[category] ?? "",
+              width: 32,
+              height: 32,
+              errorBuilder: (_, __, ___) {
+                return const Icon(Icons.water_drop);
+              },
+            ),
             title: Text(category, style: AppTextStyles.subTitle1),
             subtitle: Text(
               goal > 0
@@ -188,9 +193,11 @@ class _ReportsPageState extends State<ReportsPage> {
             Image.asset("assets/icons/nav_reports.png",
                 width: 24, height: 24, color: Colors.white),
             const SizedBox(width: 8),
-            Text("Tüketim Raporları",
-                style: AppTextStyles.headline2
-                    .copyWith(color: AppColors.backgroundLight)),
+            Text(
+              "Tüketim Raporları",
+              style: AppTextStyles.headline2
+                  .copyWith(color: AppColors.backgroundLight),
+            ),
           ],
         ),
       ),
@@ -212,20 +219,19 @@ class _ReportsPageState extends State<ReportsPage> {
                 color: AppColors.mediumGrey,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.medium),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.medium),
                     child: Text("Günlük", style: AppTextStyles.bodyText1),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.medium),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.medium),
                     child: Text("Haftalık", style: AppTextStyles.bodyText1),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.large),
-              SizedBox(
-                height: 300,
-                child: buildBarChart(data),
-              ),
+              SizedBox(height: 300, child: buildBarChart(data)),
               const SizedBox(height: AppSpacing.large),
               buildSummaryCards(data),
             ],
@@ -236,17 +242,23 @@ class _ReportsPageState extends State<ReportsPage> {
         backgroundColor: AppColors.primaryGreen,
         child: const Icon(Icons.add),
         onPressed: () {
-          // Consumption ekleme sayfasına gidecek
+          Navigator.pushNamed(context, '/add');
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) {
           setState(() => _currentIndex = i);
+          if (i == 0) Navigator.pushNamed(context, '/home');
+          if (i == 1) Navigator.pushNamed(context, '/add');
+          if (i == 2) Navigator.pushNamed(context, '/reports');
+          if (i == 3) Navigator.pushNamed(context, '/settings');
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "İstatistik"),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Tüketim Ekle"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart), label: "İstatistik"),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Ayarlar"),
         ],
         selectedItemColor: AppColors.primaryBlue,

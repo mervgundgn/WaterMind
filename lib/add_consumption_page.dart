@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'app_constant.dart';
+import 'app_constants.dart';
 
 class AddConsumptionPage extends StatefulWidget {
   const AddConsumptionPage({super.key});
@@ -211,8 +211,8 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         centerTitle: true,
         title: Text(
           "Tüketim Ekle",
-          style: AppTextStyles.headline2
-              .copyWith(color: AppColors.backgroundLight),
+          style:
+          AppTextStyles.headline2.copyWith(color: AppColors.backgroundLight),
         ),
         backgroundColor: AppColors.primaryBlue,
       ),
@@ -250,71 +250,16 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                     ),
                   ),
                   items: [
-                    DropdownMenuItem(
-                        value: "İçme_Suyu",
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/icons/cat_drinking_water.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("İçme Suyu"),
-                          ],
-                        )),
-                    DropdownMenuItem(
-                        value: "Duş",
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/icons/cat_shower.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("Duş"),
-                          ],
-                        )),
-                    DropdownMenuItem(
-                        value: "Çamaşır_Yıkama",
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/icons/cat_laundry.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("Çamaşır"),
-                          ],
-                        )),
-                    DropdownMenuItem(
-                        value: "Bulaşık_Yıkama",
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/icons/cat_dishes.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("Bulaşık"),
-                          ],
-                        )),
-                    DropdownMenuItem(
-                        value: "Bahçe_Sulama",
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/icons/cat_garden_watering.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text("Bahçe Sulama"),
-                          ],
-                        )),
+                    _buildDropdownItem("İçme_Suyu", "İçme Suyu",
+                        "assets/icons/cat_drinking_water.png"),
+                    _buildDropdownItem("Duş", "Duş",
+                        "assets/icons/cat_shower.png"),
+                    _buildDropdownItem("Çamaşır_Yıkama", "Çamaşır",
+                        "assets/icons/cat_laundry.png"),
+                    _buildDropdownItem("Bulaşık_Yıkama", "Bulaşık",
+                        "assets/icons/cat_dishes.png"),
+                    _buildDropdownItem("Bahçe_Sulama", "Bahçe Sulama",
+                        "assets/icons/cat_garden_watering.png"),
                   ],
                   onChanged: (val) => setState(() => selectedCategory = val),
                 ),
@@ -326,7 +271,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                 TextField(
                   controller: _amountController,
                   keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.mediumGrey,
@@ -383,10 +328,8 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                               ),
-                              child: const Text(
-                                "Beklet",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              child: const Text("Beklet",
+                                  style: TextStyle(color: Colors.white)),
                             ),
                             const SizedBox(width: 16),
                             ElevatedButton(
@@ -398,10 +341,8 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 12),
                               ),
-                              child: const Text(
-                                "Devam Et",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                              child: const Text("Devam Et",
+                                  style: TextStyle(color: Colors.white)),
                             ),
                           ],
                         ),
@@ -427,6 +368,38 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
               ],
             ),
           ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 1,
+        onTap: (i) {
+          if (i == 0) Navigator.pushNamed(context, '/home');
+          if (i == 1) Navigator.pushNamed(context, '/add');
+          if (i == 2) Navigator.pushNamed(context, '/reports');
+          if (i == 3) Navigator.pushNamed(context, '/settings');
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Tüketim Ekle"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart), label: "İstatistik"),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Ayarlar"),
+        ],
+        selectedItemColor: AppColors.primaryBlue,
+        unselectedItemColor: AppColors.mediumGrey,
+      ),
+    );
+  }
+
+  DropdownMenuItem<String> _buildDropdownItem(
+      String value, String text, String asset) {
+    return DropdownMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Image.asset(asset, width: 24, height: 24),
+          const SizedBox(width: 8),
+          Text(text),
         ],
       ),
     );

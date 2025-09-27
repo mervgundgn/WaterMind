@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'app_constant.dart'; // Ensure this file defines AppConstants
-import 'package:google_fonts/google_fonts.dart'; // Google Fonts paketi eklendi
+import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'app_constants.dart';
+import 'home_page.dart';
+import 'login_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
   @override
   State<SplashPage> createState() => _SplashPageState();
 }
@@ -18,37 +23,46 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _navigateNext() async {
     await Future.delayed(const Duration(seconds: 3));
 
-    final user = FirestoreConstants.usersCollection;
-    if (user.isNotEmpty) {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
+    final user = FirebaseAuth.instance.currentUser;
+    if (!mounted) return;
+
+    if (user != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     } else {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color.fromARGB(255, 159, 187, 208),
-        body: Center(
-            child: Column(
+      backgroundColor: const Color.fromARGB(255, 159, 187, 208),
+      body: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/images/splash_fish.png",
-                width: 200, height: 200), // Splash ekran resmi
+            Image.asset(
+              "assets/images/splash_fish.png",
+              width: 200,
+              height: 200,
+            ),
             const SizedBox(height: AppSpacing.extraLarge),
-
             Text(
               "WaterMind",
               style: AppTextStyles.headline1.copyWith(
-                fontFamily:
-                    GoogleFonts.lobster().fontFamily, // Google Fonts kullanımı
+                fontFamily: GoogleFonts.lobster().fontFamily,
                 color: const Color.fromARGB(255, 19, 105, 176),
               ),
-            )
+            ),
           ],
-        )));
+        ),
+      ),
+    );
   }
 }

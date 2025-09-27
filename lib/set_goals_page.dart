@@ -81,7 +81,9 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
         backgroundColor: AppColors.primaryBlue,
         title: Text(
           "Hedeflerini Belirle",
-          style: AppTextStyles.headline2.copyWith(color: AppColors.backgroundLight),
+          style: AppTextStyles.headline2.copyWith(
+            color: AppColors.backgroundLight,
+          ),
         ),
         centerTitle: true,
       ),
@@ -91,7 +93,9 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
           child: ListView(
             children: goalMap.keys.map((category) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.medium,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -105,7 +109,9 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
                         const SizedBox(width: AppSpacing.medium),
                         Text(
                           category,
-                          style: AppTextStyles.subTitle1.copyWith(color: AppColors.darkGrey),
+                          style: AppTextStyles.subTitle1.copyWith(
+                            color: AppColors.darkGrey,
+                          ),
                         ),
                       ],
                     ),
@@ -141,7 +147,9 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
                     ),
                     Text(
                       getCategoryDisplayText(category, goalMap[category]!),
-                      style: AppTextStyles.bodyText1.copyWith(color: AppColors.primaryBlue),
+                      style: AppTextStyles.bodyText1.copyWith(
+                        color: AppColors.primaryBlue,
+                      ),
                     ),
                   ],
                 ),

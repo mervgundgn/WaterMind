@@ -24,12 +24,8 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text.trim(),
       );
 
-      // Başarılı giriş sonrası HomePage'e yönlendir
-      if (!mounted) return; // Widget dispose edilmediyse devam et
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Giriş başarılı ✅")),
@@ -51,14 +47,8 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ✅ App Logo
-              Image.asset(
-                "assets/icons/app_logo_main.png",
-                height: 120,
-              ),
+              Image.asset("assets/icons/app_logo_main.png", height: 120),
               SizedBox(height: AppSpacing.large),
-
-              // ✅ Başlık
               Text(
                 "Hoş Geldiniz!",
                 style: AppTextStyles.headline1.copyWith(
@@ -66,8 +56,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: AppSpacing.large),
-
-              // ✅ Form container
               Container(
                 padding: EdgeInsets.all(AppSpacing.large),
                 decoration: BoxDecoration(
@@ -83,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Column(
                   children: [
-                    // Email input
                     TextField(
                       controller: emailController,
                       style: AppTextStyles.bodyText1
@@ -107,8 +94,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: AppSpacing.medium),
-
-                    // Password input
                     TextField(
                       controller: passwordController,
                       obscureText: true,
@@ -133,8 +118,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: AppSpacing.large),
-
-                    // Login button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -151,8 +134,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: AppSpacing.medium),
-
-// Forgot + Create Account buttons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -169,27 +150,13 @@ class _LoginPageState extends State<LoginPage> {
                                         "Şifre sıfırlama maili gönderildi 📩"),
                                   ),
                                 );
-                              } on FirebaseAuthException catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Hata: ${e.message}"),
-                                  ),
-                                );
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content:
-                                        Text("Beklenmeyen bir hata oluştu: $e"),
+                                    content: Text("Hata: $e"),
                                   ),
                                 );
                               }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text("Lütfen email adresinizi girin ✉️"),
-                                ),
-                              );
                             }
                           },
                           style: TextButton.styleFrom(
@@ -200,11 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const RegisterPage()),
-                            );
+                            Navigator.pushNamed(context, '/register');
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.primaryBlue,
