@@ -3,10 +3,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'app_constants.dart';
 
 class ReportsPage extends StatefulWidget {
-  const ReportsPage({Key? key}) : super(key: key);
-
+  const ReportsPage({super.key});
   @override
-  _ReportsPageState createState() => _ReportsPageState();
+  State<ReportsPage> createState() => _ReportsPageState();
 }
 
 class _ReportsPageState extends State<ReportsPage> {
@@ -15,7 +14,7 @@ class _ReportsPageState extends State<ReportsPage> {
   Map<String, double> userGoals = {};
 
   bool showWeekly = false;
-  int _currentIndex = 2;
+  int _currentIndex = 1;
   bool isLoading = true;
 
   final List<String> categories = [
@@ -48,7 +47,6 @@ class _ReportsPageState extends State<ReportsPage> {
       "Bulaşık": 30,
       "Bahçe Sulama": 20,
     };
-
     dailyConsumption = {
       "İçme Suyu": 1200,
       "Duş": 30,
@@ -56,7 +54,6 @@ class _ReportsPageState extends State<ReportsPage> {
       "Bulaşık": 20,
       "Bahçe Sulama": 5,
     };
-
     weeklyConsumption = {
       "İçme Suyu": 6000,
       "Duş": 200,
@@ -64,18 +61,14 @@ class _ReportsPageState extends State<ReportsPage> {
       "Bulaşık": 90,
       "Bahçe Sulama": 50,
     };
-
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
   List<BarChartGroupData> buildBarGroups(Map<String, double> data) {
     return categories.asMap().entries.map((entry) {
-      int index = entry.key;
-      String category = entry.value;
-      double value = data[category] ?? 0;
-
+      final index = entry.key;
+      final category = entry.value;
+      final value = data[category] ?? 0;
       return BarChartGroupData(
         x: index,
         barRods: [
@@ -92,54 +85,46 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Widget buildBarChart(Map<String, double> data) {
     double maxY = 0;
-    for (var category in categories) {
-      double consumed = data[category] ?? 0;
-      double goal = userGoals[category] ?? 0;
+    for (final category in categories) {
+      final consumed = data[category] ?? 0;
+      final goal = userGoals[category] ?? 0;
       if (consumed > maxY) maxY = consumed;
       if (goal > maxY) maxY = goal;
     }
-    maxY = maxY * 1.2;
-    if (maxY == 0) maxY = 10;
+    maxY = (maxY == 0 ? 10 : maxY * 1.2);
 
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: maxY,
         barGroups: buildBarGroups(data),
-        gridData: FlGridData(show: false),
+        gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 50,
-              getTitlesWidget: (value, meta) {
-                return Text("${value.toInt()} L",
-                    style: AppTextStyles.caption);
-              },
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) => Text("${value.toInt()} L", style: AppTextStyles.caption),
             ),
           ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                int i = value.toInt();
+                final i = value.toInt();
                 if (i < categories.length) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      categories[i],
-                      style: AppTextStyles.bodyText2,
-                      textAlign: TextAlign.center,
-                    ),
+                    child: Text(categories[i], style: AppTextStyles.bodyText2, textAlign: TextAlign.center),
                   );
                 }
                 return const SizedBox.shrink();
               },
             ),
           ),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
       ),
     );
@@ -148,30 +133,23 @@ class _ReportsPageState extends State<ReportsPage> {
   Widget buildSummaryCards(Map<String, double> data) {
     return Column(
       children: categories.map((category) {
-        double consumed = data[category] ?? 0;
-        double goal = userGoals[category] ?? 0;
-
+        final consumed = data[category] ?? 0;
+        final goal = userGoals[category] ?? 0;
         return Card(
           color: AppColors.backgroundLight,
           elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(vertical: AppSpacing.small),
           child: ListTile(
             leading: Image.asset(
               categoryIcons[category] ?? "",
               width: 32,
               height: 32,
-              errorBuilder: (_, __, ___) {
-                return const Icon(Icons.water_drop);
-              },
+              errorBuilder: (_, __, ___) => const Icon(Icons.water_drop),
             ),
             title: Text(category, style: AppTextStyles.subTitle1),
             subtitle: Text(
-              goal > 0
-                  ? "${consumed.toInt()} L / Hedef: ${goal.toInt()} L"
-                  : "${consumed.toInt()} L (hedef yok)",
+              goal > 0 ? "${consumed.toInt()} L / Hedef: ${goal.toInt()} L" : "${consumed.toInt()} L (hedef yok)",
               style: AppTextStyles.bodyText2,
             ),
           ),
@@ -190,14 +168,9 @@ class _ReportsPageState extends State<ReportsPage> {
         backgroundColor: AppColors.primaryBlue,
         title: Row(
           children: [
-            Image.asset("assets/icons/nav_reports.png",
-                width: 24, height: 24, color: Colors.white),
+            Image.asset("assets/icons/nav_reports.png", width: 24, height: 24, color: Colors.white),
             const SizedBox(width: 8),
-            Text(
-              "Tüketim Raporları",
-              style: AppTextStyles.headline2
-                  .copyWith(color: AppColors.backgroundLight),
-            ),
+            Text("Tüketim Raporları", style: AppTextStyles.headline2.copyWith(color: AppColors.backgroundLight)),
           ],
         ),
       ),
@@ -211,21 +184,17 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               ToggleButtons(
                 isSelected: [!showWeekly, showWeekly],
-                onPressed: (index) {
-                  setState(() => showWeekly = index == 1);
-                },
+                onPressed: (index) => setState(() => showWeekly = index == 1),
                 borderRadius: BorderRadius.circular(8),
                 selectedColor: AppColors.primaryBlue,
                 color: AppColors.mediumGrey,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.medium),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.medium),
                     child: Text("Günlük", style: AppTextStyles.bodyText1),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.medium),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.medium),
                     child: Text("Haftalık", style: AppTextStyles.bodyText1),
                   ),
                 ],
@@ -241,24 +210,19 @@ class _ReportsPageState extends State<ReportsPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primaryGreen,
         child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.pushNamed(context, '/add');
-        },
+        onPressed: () => Navigator.pushNamed(context, '/add'),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) {
           setState(() => _currentIndex = i);
-          if (i == 0) Navigator.pushNamed(context, '/home');
-          if (i == 1) Navigator.pushNamed(context, '/add');
-          if (i == 2) Navigator.pushNamed(context, '/reports');
-          if (i == 3) Navigator.pushNamed(context, '/settings');
+          if (i == 0) Navigator.pushReplacementNamed(context, '/home');
+          if (i == 1) Navigator.pushReplacementNamed(context, '/reports');
+          if (i == 2) Navigator.pushReplacementNamed(context, '/settings');
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Tüketim Ekle"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: "İstatistik"),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "İstatistik"),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Ayarlar"),
         ],
         selectedItemColor: AppColors.primaryBlue,

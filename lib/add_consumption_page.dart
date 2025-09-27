@@ -5,7 +5,6 @@ import 'app_constants.dart';
 
 class AddConsumptionPage extends StatefulWidget {
   const AddConsumptionPage({super.key});
-
   @override
   State<AddConsumptionPage> createState() => _AddConsumptionPageState();
 }
@@ -18,7 +17,14 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
   int timerSeconds = 0;
   late final Stopwatch _stopwatch;
   Timer? _timer;
-  bool showSaveHighlight = false;
+
+  final Map<String, String> categoryIcons = {
+    "İçme Suyu": "assets/icons/cat_drinking_water.png",
+    "Duş": "assets/icons/cat_shower.png",
+    "Çamaşır": "assets/icons/cat_laundry.png",
+    "Bulaşık": "assets/icons/cat_dishes.png",
+    "Bahçe Sulama": "assets/icons/cat_garden_watering.png",
+  };
 
   @override
   void initState() {
@@ -34,65 +40,6 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
     super.dispose();
   }
 
-  double _getConsumptionRatePerMinute(String category) {
-    switch (category) {
-      case "Duş":
-        return AppDefaultValues.defaultShowerConsumptionPerMinute;
-      case "Çamaşır_Yıkama":
-        return AppDefaultValues.defaultLaundryConsumptionPerMinute;
-      case "Bulaşık_Yıkama":
-        return AppDefaultValues.defaultDishConsumptionPerMinute;
-      case "Bahçe_Sulama":
-        return AppDefaultValues.defaultGardenConsumptionPerMinute;
-      case "İçme_Suyu":
-      default:
-        return AppDefaultValues.defaultDrinkingWaterConsumptionPerGlass;
-    }
-  }
-
-  void _startTimer({bool reset = true}) {
-    if (selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Lütfen önce bir kategori seçin")),
-      );
-      return;
-    }
-
-    if (reset) {
-      _stopwatch.reset();
-      timerSeconds = 0;
-      _amountController.text = "0.00";
-    }
-
-    _stopwatch.start();
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        timerSeconds = _stopwatch.elapsed.inSeconds;
-        double minutes = timerSeconds / 60;
-        double calculatedLiters =
-            minutes * _getConsumptionRatePerMinute(selectedCategory!);
-        _amountController.text = calculatedLiters.toStringAsFixed(2);
-      });
-    });
-    setState(() {
-      isTimerRunning = true;
-      showSaveHighlight = false;
-    });
-  }
-
-  void _pauseTimer() {
-    _stopwatch.stop();
-    _timer?.cancel();
-    setState(() {
-      isTimerRunning = false;
-    });
-  }
-
-  void _resumeTimer() {
-    _startTimer(reset: false);
-  }
-
   String _formatTime(int seconds) {
     final hrs = (seconds ~/ 3600).toString().padLeft(2, '0');
     final mins = ((seconds % 3600) ~/ 60).toString().padLeft(2, '0');
@@ -100,10 +47,25 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
     return "$hrs:$mins:$secs";
   }
 
-  double _getWaterLevelFraction() {
-    double amount = double.tryParse(_amountController.text) ?? 0;
-    double fraction = 1 - (amount / 20);
-    return fraction.clamp(0.1, 1.0);
+  void _startTimer() {
+    if (selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lütfen önce bir kategori seçin")),
+      );
+      return;
+    }
+    _stopwatch.reset();
+    _stopwatch.start();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      setState(() => timerSeconds = _stopwatch.elapsed.inSeconds);
+    });
+    setState(() => isTimerRunning = true);
+  }
+
+  void _pauseTimer() {
+    _stopwatch.stop();
+    _timer?.cancel();
+    setState(() => isTimerRunning = false);
   }
 
   Future<void> _saveConsumption() async {
@@ -114,293 +76,137 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
       return;
     }
 
-    final String category = selectedCategory!;
-    final String amount = _amountController.text;
-    final String elapsedTime = _formatTime(timerSeconds);
+    await FirebaseFirestore.instance
+        .collection(FirestoreConstants.consumptionHistoryCollection)
+        .add({
+      "category": selectedCategory!,
+      "amount": double.tryParse(_amountController.text) ?? 0,
+      "time_spent": timerSeconds,
+      "timestamp": Timestamp.now(),
+    });
 
-    try {
-      await FirebaseFirestore.instance
-          .collection(FirestoreConstants.consumptionHistoryCollection)
-          .add({
-        "category": category,
-        "amount": double.tryParse(amount) ?? 0,
-        "time_spent": timerSeconds,
-        "timestamp": Timestamp.now(),
-      });
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Tüketim kaydedildi ✅")),
+    );
 
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Colors.lightBlue[50],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Center(
-            child: Text(
-              "🎉 Tüketim Kaydedildi!",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Text("Kategori: $category",
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 4),
-              Text("Toplam Su Tüketimi: $amount litre",
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 4),
-              Text("Geçen Süre: $elapsedTime",
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              const Divider(thickness: 1, color: Colors.blueGrey),
-              const SizedBox(height: 8),
-              const Text("Tüketiminiz başarıyla kaydedildi!",
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                  textAlign: TextAlign.center),
-            ],
-          ),
-          actions: [
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
-                  "Tamam 👍",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
-                      fontSize: 16),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-
-      _timer?.cancel();
-      setState(() {
-        selectedCategory = null;
-        _amountController.clear();
-        timerSeconds = 0;
-        _stopwatch.reset();
-        isTimerRunning = false;
-        showSaveHighlight = false;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Hata: $e")),
-      );
-    }
+    setState(() {
+      selectedCategory = null;
+      _amountController.clear();
+      timerSeconds = 0;
+      _stopwatch.reset();
+      isTimerRunning = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    double waterLevelFraction = _getWaterLevelFraction();
-
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         centerTitle: true,
-        title: Text(
-          "Tüketim Ekle",
-          style:
-          AppTextStyles.headline2.copyWith(color: AppColors.backgroundLight),
-        ),
+        title: Text("Tüketim Ekle",
+            style: AppTextStyles.headline2.copyWith(color: Colors.white)),
         backgroundColor: AppColors.primaryBlue,
       ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: FractionallySizedBox(
-                heightFactor: waterLevelFraction,
-                widthFactor: 1.0,
-                child: Image.asset(
-                  "assets/images/water_level_medium.gif",
-                  fit: BoxFit.cover,
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.large),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Kategori seçimi
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.medium),
+                child: DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration.collapsed(hintText: ""),
+                  items: categoryIcons.keys.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Row(
+                        children: [
+                          Image.asset(categoryIcons[category]!,
+                              width: 30, height: 30),
+                          const SizedBox(width: 12),
+                          Text(category, style: AppTextStyles.bodyText1),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => selectedCategory = val),
+                  hint: const Text("Kategori Seçin"),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(25.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Kategori",
-                    style: AppTextStyles.subTitle1
-                        .copyWith(color: AppColors.backgroundDark)),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.mediumGrey,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  items: [
-                    _buildDropdownItem("İçme_Suyu", "İçme Suyu",
-                        "assets/icons/cat_drinking_water.png"),
-                    _buildDropdownItem("Duş", "Duş",
-                        "assets/icons/cat_shower.png"),
-                    _buildDropdownItem("Çamaşır_Yıkama", "Çamaşır",
-                        "assets/icons/cat_laundry.png"),
-                    _buildDropdownItem("Bulaşık_Yıkama", "Bulaşık",
-                        "assets/icons/cat_dishes.png"),
-                    _buildDropdownItem("Bahçe_Sulama", "Bahçe Sulama",
-                        "assets/icons/cat_garden_watering.png"),
-                  ],
-                  onChanged: (val) => setState(() => selectedCategory = val),
-                ),
-                const SizedBox(height: 16),
-                Text("Miktar (litre)",
-                    style: AppTextStyles.subTitle1
-                        .copyWith(color: AppColors.backgroundDark)),
-                const SizedBox(height: 8),
-                TextField(
+            const SizedBox(height: AppSpacing.large),
+
+            // Miktar girme
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.medium),
+                child: TextField(
                   controller: _amountController,
                   keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.mediumGrey,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Miktar (litre)",
                   ),
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Column(
+              ),
+            ),
+            const SizedBox(height: AppSpacing.large),
+
+            // Timer göstergesi
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    _formatTime(timerSeconds),
+                    style: AppTextStyles.headline1
+                        .copyWith(color: AppColors.primaryBlue),
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "Su Tüketimi Boyunca Geçen Süre",
-                        style: AppTextStyles.headline2.copyWith(
-                            color: AppColors.darkGrey,
-                            fontWeight: FontWeight.w300),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _formatTime(timerSeconds),
-                        style: AppTextStyles.headline2.copyWith(
-                          color: AppColors.primaryBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
+                      ElevatedButton.icon(
                         onPressed: isTimerRunning ? _pauseTimer : _startTimer,
+                        icon: Icon(
+                            isTimerRunning ? Icons.pause : Icons.play_arrow),
+                        label:
+                        Text(isTimerRunning ? "Durdur" : "Başlat"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryBlue,
-                          elevation: 8,
-                          shadowColor: Colors.black54,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 32, vertical: 14),
-                        ),
-                        child: Text(
-                          isTimerRunning ? "Bitir" : "Başlat",
-                          style: AppTextStyles.buttonText,
+                              horizontal: 24, vertical: 12),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      if (_stopwatch.isRunning || timerSeconds > 0)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton(
-                              onPressed: isTimerRunning ? _pauseTimer : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accentTeal,
-                                elevation: 6,
-                                shadowColor: Colors.black38,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                              ),
-                              child: const Text("Beklet",
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: !isTimerRunning ? _resumeTimer : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accentTeal,
-                                elevation: 6,
-                                shadowColor: Colors.black38,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                              ),
-                              child: const Text("Devam Et",
-                                  style: TextStyle(color: Colors.white)),
-                            ),
-                          ],
+                      const SizedBox(width: 16),
+                      ElevatedButton.icon(
+                        onPressed: _saveConsumption,
+                        icon: const Icon(Icons.save),
+                        label: const Text("Kaydet"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                         ),
+                      ),
                     ],
                   ),
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _saveConsumption,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: showSaveHighlight
-                          ? Colors.orange
-                          : AppColors.primaryBlue,
-                      shadowColor: const Color.fromARGB(137, 81, 0, 0),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text("Tüketimi Kaydet",
-                        style: AppTextStyles.buttonText),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        onTap: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/home');
-          if (i == 1) Navigator.pushNamed(context, '/add');
-          if (i == 2) Navigator.pushNamed(context, '/reports');
-          if (i == 3) Navigator.pushNamed(context, '/settings');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Ana Sayfa"),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Tüketim Ekle"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart), label: "İstatistik"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Ayarlar"),
-        ],
-        selectedItemColor: AppColors.primaryBlue,
-        unselectedItemColor: AppColors.mediumGrey,
-      ),
-    );
-  }
-
-  DropdownMenuItem<String> _buildDropdownItem(
-      String value, String text, String asset) {
-    return DropdownMenuItem(
-      value: value,
-      child: Row(
-        children: [
-          Image.asset(asset, width: 24, height: 24),
-          const SizedBox(width: 8),
-          Text(text),
-        ],
+          ],
+        ),
       ),
     );
   }

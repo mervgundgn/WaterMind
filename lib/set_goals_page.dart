@@ -3,10 +3,9 @@ import 'app_constants.dart';
 import 'home_page.dart';
 
 class SetGoalsPage extends StatefulWidget {
-  const SetGoalsPage({Key? key}) : super(key: key);
-
+  const SetGoalsPage({super.key});
   @override
-  _SetGoalsPageState createState() => _SetGoalsPageState();
+  State<SetGoalsPage> createState() => _SetGoalsPageState();
 }
 
 class _SetGoalsPageState extends State<SetGoalsPage> {
@@ -42,15 +41,15 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
         return "${value.toInt()} litre (yaklaşık ${(value / 12).round()} dakika)";
       case "Çamaşır":
         if (value == 0) return "0 makine (0 litre)";
-        int litres = (value * AppDefaultValues.defaultLaundryConsumption).toInt();
+        final litres = (value * AppDefaultValues.defaultLaundryConsumption).toInt();
         return "${value.toInt()} makine (yaklaşık $litres litre)";
       case "Bulaşık":
         if (value == 0) return "0 makine (0 litre)";
-        int litres = (value * AppDefaultValues.defaultDishesConsumption).toInt();
+        final litres = (value * AppDefaultValues.defaultDishesConsumption).toInt();
         return "${value.toInt()} makine (yaklaşık $litres litre)";
       case "Bahçe Sulama":
         if (value == 0) return "0 litre";
-        int minutes = (value / 10).round();
+        final minutes = (value / 10).round();
         return "${value.toInt()} litre (yaklaşık $minutes dakika)";
       default:
         return "${value.toInt()} litre";
@@ -59,17 +58,10 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
 
   void saveGoals() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Hedefler kaydedildi!"),
-        duration: Duration(seconds: 3),
-      ),
+      const SnackBar(content: Text("Hedefler kaydedildi!"), duration: Duration(seconds: 2)),
     );
-
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
     });
   }
 
@@ -79,12 +71,7 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         backgroundColor: AppColors.primaryBlue,
-        title: Text(
-          "Hedeflerini Belirle",
-          style: AppTextStyles.headline2.copyWith(
-            color: AppColors.backgroundLight,
-          ),
-        ),
+        title: Text("Hedeflerini Belirle", style: AppTextStyles.headline2.copyWith(color: AppColors.backgroundLight)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -93,33 +80,22 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
           child: ListView(
             children: goalMap.keys.map((category) {
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.medium,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Image.asset(
-                          categoryIcons[category]!,
-                          width: 40,
-                          height: 40,
-                        ),
+                        Image.asset(categoryIcons[category]!, width: 40, height: 40),
                         const SizedBox(width: AppSpacing.medium),
-                        Text(
-                          category,
-                          style: AppTextStyles.subTitle1.copyWith(
-                            color: AppColors.darkGrey,
-                          ),
-                        ),
+                        Text(category, style: AppTextStyles.subTitle1.copyWith(color: AppColors.darkGrey)),
                       ],
                     ),
                     Slider(
                       value: goalMap[category]!,
                       min: 0,
                       max: category == "Çamaşır"
-                          ? 5 // 0–5 makine
+                          ? 5
                           : category == "Bulaşık"
                           ? 5
                           : category == "İçme Suyu"
@@ -147,9 +123,7 @@ class _SetGoalsPageState extends State<SetGoalsPage> {
                     ),
                     Text(
                       getCategoryDisplayText(category, goalMap[category]!),
-                      style: AppTextStyles.bodyText1.copyWith(
-                        color: AppColors.primaryBlue,
-                      ),
+                      style: AppTextStyles.bodyText1.copyWith(color: AppColors.primaryBlue),
                     ),
                   ],
                 ),
