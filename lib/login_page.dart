@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'register_page.dart';
-import 'app_constants.dart';
-import 'home_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:watermind/register_page.dart';
+import 'package:watermind/app_constants.dart';
+import 'package:watermind/home_page.dart';
+import 'package:watermind/set_goals_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,26 +16,68 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> login() async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      final user = userCredential.user;
+      bool goToSetGoals = false;
 
+      if (user != null) {
+        final docRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final docSnapshot = await docRef.get();
+
+        if (!docSnapshot.exists) {
+          // Belge yoksa oluştur ve goalsSet default false
+          await docRef.set({
+            "email": user.email,
+            "dailyTarget": 150,
+            "dailyConsumption": 0,
+            "goalsSet": false,
+          });
+          goToSetGoals = true; // Yeni kullanıcı hedef belirleyecek
+        } else {
+          final data = docSnapshot.data();
+          bool goalsSet = data?['goalsSet'] ?? false;
+          if (!goalsSet) {
+            goToSetGoals = true; // Hedef belirlememiş kullanıcı
+          }
+        }
+      }
+
+      // Giriş başarılı SnackBar
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Giriş başarılı ✅")),
       );
+
+      // Hedef belirleme sayfasına yönlendir veya HomePage
+      if (goToSetGoals) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SetGoalsPage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Hata: ${e.message}")),
       );
@@ -50,7 +94,10 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset("assets/icons/app_logo_main.png", height: 120),
+              Image.asset(
+                "assets/icons/app_logo_main.png",
+                height: 120,
+              ),
               SizedBox(height: AppSpacing.large),
               Text(
                 "Hoş Geldiniz!",
@@ -76,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextField(
                       controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
                       style: AppTextStyles.bodyText1
                           .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
@@ -86,6 +134,13 @@ class _LoginPageState extends State<LoginPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
@@ -104,6 +159,13 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(height: AppSpacing.large),
@@ -116,6 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          textStyle: AppTextStyles.buttonText,
                         ),
                         onPressed: login,
                         child: const Text("Giriş Yap"),
@@ -132,6 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                                 await _auth.sendPasswordResetEmail(
                                   email: emailController.text.trim(),
                                 );
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
@@ -139,14 +203,35 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 );
                               } on FirebaseAuthException catch (e) {
+                                if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text("Hata: ${e.message}"),
                                   ),
                                 );
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text("Beklenmeyen bir hata oluştu: $e"),
+                                  ),
+                                );
                               }
+                            } else {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Lütfen email adresinizi girin ✉️"),
+                                ),
+                              );
                             }
                           },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryBlue,
+                            textStyle: AppTextStyles.bodyText1,
+                          ),
                           child: const Text("Şifremi Unuttum"),
                         ),
                         TextButton(
@@ -157,6 +242,10 @@ class _LoginPageState extends State<LoginPage> {
                                   builder: (_) => const RegisterPage()),
                             );
                           },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryBlue,
+                            textStyle: AppTextStyles.bodyText1,
+                          ),
                           child: const Text("Hesap Oluştur"),
                         ),
                       ],

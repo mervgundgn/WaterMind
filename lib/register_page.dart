@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'app_constants.dart';
-import 'login_page.dart';
+import 'package:watermind/app_constants.dart';
+import 'package:watermind/login_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
+
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
@@ -12,30 +14,51 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> register() async {
-    if (passwordController.text.trim() != confirmPasswordController.text.trim()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Şifreler eşleşmiyor ❌")),
-      );
-      return;
-    }
     try {
-      await _auth.createUserWithEmailAndPassword(
+      // Firebase Auth ile kullanıcı oluştur
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
+
+      final user = userCredential.user;
+      if (user != null) {
+        // Firestore'da kullanıcı belgesi oluştur, goalsSet default false
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          "email": user.email,
+          "dailyTarget": 150, // default hedef
+          "dailyConsumption": 0,
+          "goalsSet": false,
+        });
+      }
+
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Hesap başarıyla oluşturuldu 🎉")),
-      );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Başarılı 🎉"),
+          content: const Text("Hesap başarıyla oluşturuldu!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text("Tamam"),
+            ),
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,83 +70,159 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5FF5F),
+      backgroundColor: AppColors.backgroundDark,
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpacing.large),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // ✅ App Logo
+              Image.asset(
+                "assets/icons/app_logo_main.png",
+                height: 120,
+              ),
+              SizedBox(height: AppSpacing.large),
+
+              // ✅ Başlık
               Text(
                 "Hesap Oluştur",
-                style: AppTextStyles.headline1.copyWith(fontSize: 28),
+                style: AppTextStyles.headline1.copyWith(
+                  color: AppColors.darkGrey,
+                ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.large),
+
+              // ✅ Form container
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(AppSpacing.large),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.backgroundLight,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
+                    // Email input
                     TextField(
                       controller: emailController,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Email",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Password input
                     TextField(
                       controller: passwordController,
                       obscureText: true,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Şifre",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Confirm Password input
                     TextField(
                       controller: confirmPasswordController,
                       obscureText: true,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
                       decoration: InputDecoration(
                         hintText: "Şifre (Tekrar)",
+                        hintStyle: AppTextStyles.bodyText1,
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: AppColors.backgroundDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.large),
+
+                    // Register button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          backgroundColor: AppColors.primaryBlue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: AppTextStyles.buttonText,
                         ),
                         onPressed: register,
-                        child: Text("Kayıt Ol", style: AppTextStyles.buttonText),
+                        child: const Text("Kayıt Ol"),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Zaten hesabım var"),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Back to Login button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const LoginPage()),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primaryBlue,
+                            textStyle: AppTextStyles.bodyText1,
+                          ),
+                          child: const Text("Zaten hesabım var"),
+                        ),
+                      ],
                     ),
                   ],
                 ),
