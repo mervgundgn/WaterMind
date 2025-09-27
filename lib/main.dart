@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:watermind/add_consumption_page.dart';
-import 'package:watermind/reports_page.dart';
-import 'package:watermind/set_goals_page.dart';
+// firebase_options.dart dosyası, FlutterFire configure ile otomatik oluşur
 import 'firebase_options.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // Flutter motorunu başlat
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -20,22 +17,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'WaterMind',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('tr', 'TR'),
-      ],
-
-      home: const AddConsumptionPage(),
-      // home: const SetGoalsPage(),
+      home: const Text("WaterMind App"), // Şimdilik basit bir widget
     );
   }
 }

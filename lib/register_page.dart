@@ -1,38 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:watermind/register_page.dart';
 import 'package:watermind/app_constants.dart';
-import 'package:watermind/home_page.dart';
+import 'package:watermind/login_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> login() async {
+  Future<void> register() async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      // Başarılı giriş sonrası HomePage'e yönlendir
-      if (!mounted) return; // Widget dispose edilmediyse devam et
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      final user = userCredential.user;
+      if (user != null) {
+        // ✅ Firestore’a kullanıcı dokümanı ekle
+        await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+          "email": user.email,
+          "dailyConsumption": 0,
+          "dailyTarget": 150,
+          "createdAt": FieldValue.serverTimestamp(),
+        });
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Giriş başarılı ✅")),
+      if (!mounted) return;
+
+      // ✅ Başarılı AlertDialog
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Başarılı 🎉"),
+          content: const Text("Hesap başarıyla oluşturuldu!"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // AlertDialog kapat
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+              },
+              child: const Text("Tamam"),
+            ),
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
 
               // ✅ Başlık
               Text(
-                "Hoş Geldiniz!",
+                "Hesap Oluştur",
                 style: AppTextStyles.headline1.copyWith(
                   color: AppColors.darkGrey,
                 ),
@@ -132,9 +158,35 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
+                    SizedBox(height: AppSpacing.medium),
+
+                    // Confirm Password input
+                    TextField(
+                      controller: confirmPasswordController,
+                      obscureText: true,
+                      style: AppTextStyles.bodyText1
+                          .copyWith(color: AppColors.darkGrey),
+                      decoration: InputDecoration(
+                        hintText: "Şifre (Tekrar)",
+                        hintStyle: AppTextStyles.bodyText1,
+                        filled: true,
+                        fillColor: AppColors.backgroundDark,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryBlue,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
                     SizedBox(height: AppSpacing.large),
 
-                    // Login button
+                    // Register button
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -146,71 +198,29 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           textStyle: AppTextStyles.buttonText,
                         ),
-                        onPressed: login,
-                        child: const Text("Giriş Yap"),
+                        onPressed: register,
+                        child: const Text("Kayıt Ol"),
                       ),
                     ),
                     SizedBox(height: AppSpacing.medium),
 
-// Forgot + Create Account buttons
+                    // Back to Login button
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         TextButton(
-                          onPressed: () async {
-                            if (emailController.text.isNotEmpty) {
-                              try {
-                                await _auth.sendPasswordResetEmail(
-                                  email: emailController.text.trim(),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        "Şifre sıfırlama maili gönderildi 📩"),
-                                  ),
-                                );
-                              } on FirebaseAuthException catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Hata: ${e.message}"),
-                                  ),
-                                );
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content:
-                                        Text("Beklenmeyen bir hata oluştu: $e"),
-                                  ),
-                                );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text("Lütfen email adresinizi girin ✉️"),
-                                ),
-                              );
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primaryBlue,
-                            textStyle: AppTextStyles.bodyText1,
-                          ),
-                          child: const Text("Şifremi Unuttum"),
-                        ),
-                        TextButton(
                           onPressed: () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const RegisterPage()),
+                                  builder: (_) => const LoginPage()),
                             );
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.primaryBlue,
                             textStyle: AppTextStyles.bodyText1,
                           ),
-                          child: const Text("Hesap Oluştur"),
+                          child: const Text("Zaten hesabım var"),
                         ),
                       ],
                     ),
