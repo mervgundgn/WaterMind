@@ -83,7 +83,8 @@ class _HomePageState extends State<HomePage>
           }
 
           String fishImage = "assets/images/home_fish_normal.png";
-          String fishMessage = "Hadi su tüketimini artır! 🚰 ";
+          String fishMessage =
+              "Kontrollü şekilde su tüketimine devam edebilirsin! 🚰 ";
           Color bubbleColor = AppColors.accentTeal;
 
           if (waterLevel > 0.8) {
@@ -93,7 +94,8 @@ class _HomePageState extends State<HomePage>
             bubbleColor = AppColors.accentTeal;
           } else if (waterLevel < 0.3) {
             fishImage = "assets/images/home_fish_sad_thinking.png";
-            fishMessage = "Bugün biraz daha su tasarrufuna dikkat et 💧";
+            fishMessage =
+                "Bugün biraz daha su tasarrufuna dikkat etmelisin! Hedef günlük tüketimini aştın 💧";
             bubbleColor = AppColors.warningOrange;
           }
 

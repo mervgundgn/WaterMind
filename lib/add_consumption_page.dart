@@ -24,7 +24,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Map<String, double> userGoals = {};
-  List<Map<String, dynamic>> addedConsumptions = []; // eklenenleri tutacak
+  List<Map<String, dynamic>> addedConsumptions = [];
 
   final Map<String, String> categoryIcons = {
     "İçme Suyu": "assets/icons/cat_drinking_water.png",
@@ -83,7 +83,7 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         timerSeconds = _stopwatch.elapsed.inSeconds;
-        final autoAmount = timerSeconds * 0.2; // örnek: 1s = 0.2 L
+        final autoAmount = timerSeconds * 0.2;
         _amountController.text = autoAmount.toStringAsFixed(1);
       });
     });
@@ -143,7 +143,6 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         _firestore.collection(FirestoreConstants.usersCollection).doc(user.uid);
 
     try {
-      // 1️⃣ Consumption History kaydı
       await _firestore
           .collection(FirestoreConstants.consumptionHistoryCollection)
           .add({
@@ -154,7 +153,6 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         "timestamp": Timestamp.now(),
       });
 
-      // 2️⃣ Günlük tüketimi güncelle
       final snapshot = await userDoc.get();
       double currentDailyConsumption = 0;
 
@@ -174,7 +172,6 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
         const SnackBar(content: Text("Tüketim kaydedildi ✅")),
       );
 
-      // Listeye ekle
       setState(() {
         addedConsumptions.add({
           "category": selectedCategory!,
@@ -210,165 +207,159 @@ class _AddConsumptionPageState extends State<AddConsumptionPage> {
             style: AppTextStyles.headline2.copyWith(color: Colors.white)),
         backgroundColor: AppColors.primaryBlue,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.large),
+      body: Padding(
+        padding: const EdgeInsets.all(AppSpacing.large),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Kategori seçimi
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.medium),
+                child: DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  decoration: const InputDecoration.collapsed(hintText: ""),
+                  items: categoryIcons.keys.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Row(
+                        children: [
+                          Image.asset(categoryIcons[category]!,
+                              width: 30, height: 30),
+                          const SizedBox(width: 12),
+                          Text(category, style: AppTextStyles.bodyText1),
+                          const SizedBox(width: 12),
+                          if (userGoals[category] != null)
+                            Text(
+                              "(Hedef: ${userGoals[category]?.toInt()} L)",
+                              style: AppTextStyles.caption
+                                  .copyWith(color: AppColors.primaryBlue),
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setState(() => selectedCategory = val),
+                  hint: const Text("Kategori Seçin"),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.large),
+
+            // Miktar girme
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.medium),
+                child: TextField(
+                  controller: _amountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: "Miktar (litre)",
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.large),
+
+            // Timer + butonlar
+            Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Kategori seçimi
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
-                    child: Padding(
+                  Text(
+                    _formatTime(timerSeconds),
+                    style: AppTextStyles.headline1
+                        .copyWith(color: AppColors.primaryBlue),
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: isTimerRunning ? _pauseTimer : _startTimer,
+                        icon: Icon(
+                            isTimerRunning ? Icons.pause : Icons.play_arrow),
+                        label: Text(isTimerRunning ? "Durdur" : "Başlat"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton.icon(
+                        onPressed: _saveConsumption,
+                        icon: const Icon(Icons.save),
+                        label: const Text("Kaydet"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGreen,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
+                  if (selectedCategory != null)
+                    Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(AppSpacing.medium),
-                      child: DropdownButtonFormField<String>(
-                        value: selectedCategory,
-                        decoration:
-                            const InputDecoration.collapsed(hintText: ""),
-                        items: categoryIcons.keys.map((category) {
-                          return DropdownMenuItem(
-                            value: category,
-                            child: Row(
-                              children: [
-                                Image.asset(categoryIcons[category]!,
-                                    width: 30, height: 30),
-                                const SizedBox(width: 12),
-                                Text(category, style: AppTextStyles.bodyText1),
-                                const SizedBox(width: 12),
-                                if (userGoals[category] != null)
-                                  Text(
-                                    "(Hedef: ${userGoals[category]?.toInt()} L)",
-                                    style: AppTextStyles.caption
-                                        .copyWith(color: AppColors.primaryBlue),
-                                  ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (val) =>
-                            setState(() => selectedCategory = val),
-                        hint: const Text("Kategori Seçin"),
+                      decoration: BoxDecoration(
+                        color: _feedbackColor(),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        _feedbackMessage(),
+                        style: AppTextStyles.subTitle1
+                            .copyWith(color: AppColors.darkGrey),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.large),
-
-                  // Miktar girme
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.medium),
-                      child: TextField(
-                        controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: "Miktar (litre)",
-                        ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.large),
-
-                  // Timer ve butonlar
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          _formatTime(timerSeconds),
-                          style: AppTextStyles.headline1
-                              .copyWith(color: AppColors.primaryBlue),
-                        ),
-                        const SizedBox(height: AppSpacing.medium),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed:
-                                  isTimerRunning ? _pauseTimer : _startTimer,
-                              icon: Icon(isTimerRunning
-                                  ? Icons.pause
-                                  : Icons.play_arrow),
-                              label: Text(isTimerRunning ? "Durdur" : "Başlat"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryBlue,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            ElevatedButton.icon(
-                              onPressed: _saveConsumption,
-                              icon: const Icon(Icons.save),
-                              label: const Text("Kaydet"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryGreen,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.medium),
-
-                        // Hedef geri bildirimi
-                        if (selectedCategory != null)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(AppSpacing.medium),
-                            decoration: BoxDecoration(
-                              color: _feedbackColor(),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              _feedbackMessage(),
-                              style: AppTextStyles.subTitle1
-                                  .copyWith(color: AppColors.darkGrey),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
+            const SizedBox(height: AppSpacing.large),
 
-          // Eklenenler listesi
-          if (addedConsumptions.isNotEmpty)
-            Container(
-              height: 200,
-              color: AppColors.backgroundLight,
-              child: ListView.builder(
-                itemCount: addedConsumptions.length,
-                itemBuilder: (context, index) {
-                  final item = addedConsumptions[index];
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    child: ListTile(
-                      title: Text(
-                          "${item['category']} - ${item['amount'].toStringAsFixed(1)} L"),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete,
-                            color: AppColors.warningOrange),
-                        onPressed: () => _deleteConsumption(index),
-                      ),
+            // 📌 Listeyi buraya aldım, butonlardan hemen sonra geliyor
+            Expanded(
+              child: addedConsumptions.isEmpty
+                  ? const Center(
+                      child: Text("Henüz kayıt yok"),
+                    )
+                  : ListView.builder(
+                      itemCount: addedConsumptions.length,
+                      itemBuilder: (context, index) {
+                        final item = addedConsumptions[index];
+                        final amount =
+                            (item['amount'] is num) ? item['amount'] : 0.0;
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 4),
+                          child: ListTile(
+                            leading: const Icon(Icons.water_drop,
+                                color: AppColors.primaryBlue),
+                            title: Text("${item['category']}"),
+                            subtitle: Text("${amount.toString()} L"),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete,
+                                  color: AppColors.warningOrange),
+                              onPressed: () => _deleteConsumption(index),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
