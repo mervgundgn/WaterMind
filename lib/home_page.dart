@@ -61,7 +61,20 @@ class _HomePageState extends State<HomePage>
           final userGoalsRaw = docData?["dailyGoals"] ?? {};
           double dailyTarget = 0;
           userGoalsRaw.forEach((key, value) {
-            dailyTarget += (value as num).toDouble();
+            double rawGoal = (value as num).toDouble();
+            double convertedGoal = rawGoal;
+
+            // Çamaşır ve Bulaşık hedeflerini Litre'ye çevir:
+            if (key == "Çamaşır") {
+              // 1 Makine = 60 Litre
+              convertedGoal = rawGoal * 60;
+            } else if (key == "Bulaşık") {
+              // 1 Makine = 30 Litre
+              convertedGoal = rawGoal * 30;
+            }
+
+            dailyTarget += convertedGoal;
+
           });
 
 // Günlük tüketim miktarı

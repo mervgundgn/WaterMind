@@ -67,10 +67,22 @@ class _ReportsPageState extends State<ReportsPage> {
           }
 
           final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+
           final userGoalsRaw = userData['dailyGoals'] ?? {};
           final Map<String, double> userGoals = {};
-          for (var key in categories) {
-            userGoals[key] = (userGoalsRaw[key] ?? 0).toDouble();
+
+          for (var category in categories) {
+            double rawGoal = (userGoalsRaw[category] ?? 0).toDouble();
+            double convertedGoal = rawGoal;
+
+            // Çamaşır ve Bulaşık hedeflerini Litre'ye çevir:
+            if (category == "Çamaşır") {
+              convertedGoal = rawGoal * 60; // 1 Makine = 60 Litre
+            } else if (category == "Bulaşık") {
+              convertedGoal = rawGoal * 30; // 1 Makine = 30 Litre
+            }
+
+            userGoals[category] = convertedGoal;
           }
 
           return StreamBuilder<QuerySnapshot>(
@@ -258,17 +270,24 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
+
   Widget buildSummaryCards(
       Map<String, double> data, Map<String, double> goals) {
     return Column(
       children: categories.map((category) {
         final consumed = data[category] ?? 0;
         final goal = goals[category] ?? 0;
+
+        //Tüm değerleri virgülden sonra 1 basamak hassasiyetle Litre olarak göster
+        final consumedText = consumed.toStringAsFixed(1);
+        final goalText = goal.toStringAsFixed(1);
+        const unit = "L";
+
         return Card(
           color: AppColors.backgroundLight,
           elevation: 2.0,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.symmetric(vertical: AppSpacing.small),
           child: ListTile(
             leading: Image.asset(
@@ -280,8 +299,8 @@ class _ReportsPageState extends State<ReportsPage> {
             title: Text(category, style: AppTextStyles.subTitle1),
             subtitle: Text(
               goal > 0
-                  ? "${consumed.toInt()} L / Hedef: ${goal.toInt()} L"
-                  : "${consumed.toInt()} L (hedef yok)",
+                  ? "${consumedText} ${unit} / Hedef: ${goalText} ${unit}"
+                  : "${consumedText} ${unit} (hedef yok)",
               style: AppTextStyles.bodyText2,
             ),
           ),
